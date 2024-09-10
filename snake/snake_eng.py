@@ -415,9 +415,9 @@ def two_point_flood_fill_eval(board, snakes_pos, size, player):
     board = np.clip((board[0] - 1) * 4 + board[1] + board[2], 0, 1000)
     count = two_point_flood_fill(board, snakes_pos[0], snakes_pos[1], size)
     if player == 0:
-        return count / 10
+        return count / 4
     else:
-        return -count / 10
+        return -count / 4
 
 @njit()
 def one_tree_low_depth(board, snakes_pos, snakes_lenght, wall_spawn, snakes_alive, depth, score, move_number, size, player):
