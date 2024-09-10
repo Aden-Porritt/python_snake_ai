@@ -57,8 +57,8 @@ def main():
                             moves_end_pointer[0] += 1
                         if event.key == pygame.K_n:
                             next_move = True
-            ai_move_one = eng.get_move_in_time(board, 0.01, 0)
-            ai_move_two = eng.get_move_in_time(board, 0.01, 1)
+            ai_move_one = eng.get_move_in_time(board, 0.01, 0, 2)
+            ai_move_two = eng.get_move_in_time(board, 0.01, 1, 3)
             print(ai_move_one)
             # ai_move = np.random.randint(0, 4)
             # for move in moves:
@@ -97,11 +97,11 @@ if __name__ == '__main__':
     import matplotlib.backends.backend_agg as agg
     import pylab
     pygame.init()
-    board = snake_board.Board(SIZE, 1, 1, 1)
-    ai_move = eng.get_move_in_time(board, 0.005, 0)
+    board = snake_board.Board(SIZE, 2, 1, 1)
+    ai_move = eng.get_move_in_time(board, 0.005, 0, 2)
     board.move_snake(np.array([0]))
     board = snake_board.Board(SIZE, 2, 1, 1)
-    ai_move = eng.get_move_in_time(board, 0.005, 0)
+    ai_move = eng.get_move_in_time(board, 0.005, 0, 3)
     print('start')
     HEIGHT, WIDTH, SQRT_SIZE = get_win_size(SIZE)
     print(HEIGHT, WIDTH)

@@ -457,7 +457,7 @@ def one_tree_low_depth(board, snakes_pos, snakes_lenght, wall_spawn, snakes_aliv
     return maxeval, best_move
 
 @njit
-def two_tree_low_depth(board, snakes_pos, snakes_lenght, wall_spawn, snakes_alive, depth, score, move_number, size, player):
+def two_player_tree_search(board, snakes_pos, snakes_lenght, wall_spawn, snakes_alive, depth, score, move_number, size, player):
     score += 0.00001
     best_move = 4
     board = np.copy(board)
@@ -478,7 +478,7 @@ def two_tree_low_depth(board, snakes_pos, snakes_lenght, wall_spawn, snakes_aliv
             moves[player] = move
             new_board, new_snakes_pos, new_snakes_lenght, new_snakes_alive, new_wall_spawn = move_snake(moves, board, snakes_pos, snakes_lenght, wall_spawn, snakes_alive, size)
             if np.sum(new_snakes_lenght) <= np.sum(snakes_lenght):
-                tree_eval, next_move = two_tree_low_depth(new_board, new_snakes_pos, new_snakes_lenght, new_wall_spawn, new_snakes_alive, depth - 1, score, move_number, size, player)
+                tree_eval, next_move = two_player_tree_search(new_board, new_snakes_pos, new_snakes_lenght, new_wall_spawn, new_snakes_alive, depth - 1, score, move_number, size, player)
                 if tree_eval > maxeval:
                     best_move = move
                     maxeval = tree_eval
@@ -487,7 +487,7 @@ def two_tree_low_depth(board, snakes_pos, snakes_lenght, wall_spawn, snakes_aliv
                 tree_eval_list = np.zeros(lenght)
                 for i in range(lenght):
                     new_board, new_snakes_pos, new_snakes_lenght, new_snakes_alive, new_wall_spawn = move_snake(moves, board, snakes_pos, snakes_lenght, wall_spawn, snakes_alive, size)
-                    tree_eval_list[i], next_move = two_tree_low_depth(new_board, new_snakes_pos, new_snakes_lenght, new_wall_spawn, new_snakes_alive, depth - 1, score + depth / 500, move_number, size, player)
+                    tree_eval_list[i], next_move = two_player_tree_search(new_board, new_snakes_pos, new_snakes_lenght, new_wall_spawn, new_snakes_alive, depth - 1, score + depth / 500, move_number, size, player)
                 tree_eval = sum(tree_eval_list) / lenght
                 if tree_eval > maxeval:
                     best_move = move
@@ -574,7 +574,7 @@ def two_player_minmax_with_better_flood_fill(board, snakes_pos, snakes_lenght, w
             move_list = np.array([(start_move + i) % 4 for i in range(4)], 'i4')
             for move in move_list:
                 moves[player] = move
-                tree_eval, next_move = two_player_minmax(board, snakes_pos, snakes_lenght, wall_spawn, snakes_alive, depth - 1, score, move_number, size, (player + 1) % 2, moves, alpha, beta)
+                tree_eval, next_move = two_player_minmax_with_better_flood_fill(board, snakes_pos, snakes_lenght, wall_spawn, snakes_alive, depth - 1, score, move_number, size, (player + 1) % 2, moves, alpha, beta)
                 if tree_eval > maxeval:
                     best_moves = np.array([move, next_move[1]], 'i4')
                     maxeval = tree_eval
@@ -587,7 +587,7 @@ def two_player_minmax_with_better_flood_fill(board, snakes_pos, snakes_lenght, w
             move_list = np.array([(start_move + i) % 4 for i in range(4)], 'i4')
             for move in move_list:
                 moves[player] = move
-                tree_eval, next_move = two_player_minmax(board, snakes_pos, snakes_lenght, wall_spawn, snakes_alive, depth - 1, score, move_number, size, (player + 1) % 2, moves, alpha, beta)
+                tree_eval, next_move = two_player_minmax_with_better_flood_fill(board, snakes_pos, snakes_lenght, wall_spawn, snakes_alive, depth - 1, score, move_number, size, (player + 1) % 2, moves, alpha, beta)
                 if tree_eval < maxeval:
                     best_moves = np.array([next_move[0], move], 'i4')
                     maxeval = tree_eval
@@ -614,20 +614,35 @@ def ai_player_two(input_board, depth, player):
 
 # two_tree_low_depth(board, snakes_pos, snakes_lenght, wall_spawn, snakes_alive, depth, 0.0, input_board.move_count, input_board.size, player)
 
-def get_move_in_time(board, run_time, player):
+def eval_board(board, player, depth, ai_model):
+    match ai_model:
+        case 1:
+            print(ai_model)
+        case 16:
+            print(ai_model)
+        case 17:
+            return two_player_tree_search(board.board, board.snakes_pos, board.snakes_lenght, board.wall_spawn, board.snakes_alive, depth, 0.0, board.move_count, board.size, player)
+        case 18:
+            return two_player_minmax(board.board, board.snakes_pos, board.snakes_lenght, board.wall_spawn, board.snakes_alive, depth * 2, 0.0, board.move_count, board.size, player, np.array([4, 4], 'i4'), -10000.0, 10000.0)
+        case 19:
+            return two_player_minmax_with_better_flood_fill(board.board, board.snakes_pos, board.snakes_lenght, board.wall_spawn, board.snakes_alive, depth * 2, 0.0, board.move_count, board.size, player, np.array([4, 4], 'i4'), -10000.0, 10000.0)
+    print('no')
+
+def get_move_in_time(board, run_time, player, ai_model):
+    if board.number_of_players == 1:
+        ai_model = 1
+    elif board.number_of_players == 2:
+        ai_model = ai_model + 16
     total_time = time.time()
     total_move_time = 0
     depth = 0
     while total_move_time < run_time:
-        depth += 2
-        depth =  2 * round((depth) / 2)
-        if player == 0:
-            eval, move = ai_player_one(board, depth, player)
-        if player == 1:
-            eval, move = ai_player_two(board, depth, player)
+        depth += 1
+        depth = round(depth + depth ** 3 / 1000)
+        eval, move = eval_board(board, player, depth, ai_model)
         end = time.time()
         total_move_time = (end - total_time)
-        if abs(eval) > 100:
+        if abs(eval) > 200:
             break
         if depth > 100:
             break
