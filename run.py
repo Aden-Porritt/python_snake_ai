@@ -57,8 +57,8 @@ def main():
                             moves_end_pointer[0] += 1
                         if event.key == pygame.K_n:
                             next_move = True
-            ai_move_one = eng.get_move_in_time(board, 0.01, 0, 2)
-            ai_move_two = eng.get_move_in_time(board, 0.01, 1, 3)
+            ai_move_one = eng.get_move_in_time(board, 0.01, 0, 3)
+            ai_move_two = eng.get_move_in_time(board, 0.01, 1, 2)
             print(ai_move_one)
             # ai_move = np.random.randint(0, 4)
             # for move in moves:

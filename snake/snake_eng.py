@@ -399,7 +399,7 @@ def one_player_flood_fill_eval(board, snake_pos, size):
         return count / 4 + 0.0
     return -50 + count / 4 + 0.0
 
-
+@njit()
 def two_player_flood_fill_eval(board, snake_pos, size):
     board = np.copy(board)
     board = np.clip((board[0] - 1) * 4 + board[1] + board[2], 0, 1000)
@@ -491,7 +491,7 @@ def two_player_tree_search(board, snakes_pos, snakes_lenght, wall_spawn, snakes_
                     maxeval = tree_eval
     return maxeval, best_move
 
-
+@njit()
 def two_player_minmax(board, snakes_pos, snakes_lenght, wall_spawn, snakes_alive, depth, score, move_number, size, player, moves, alpha, beta, model):
     maxeval = 0.0
     score += 1
