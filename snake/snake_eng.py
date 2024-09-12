@@ -278,43 +278,41 @@ def move_snake(moves, board, snakes_pos, snakes_lenght, wall_spawn, snakes_alive
     return board, snakes_pos, snakes_lenght, snakes_alive, wall_spawn
 
 @njit()
+def flood_fill_helper(board, new_snake_pos , find_tail, count, size):
+    board[new_snake_pos[0]][new_snake_pos[1]] = 2
+    count += 1
+    return flood_fill(board, new_snake_pos , find_tail, count, size)
+
+@njit()
 def flood_fill(board, snake_pos, find_tail, count, size):
     snake_pos = np.copy(snake_pos)
     if snake_pos[0] + 1 != size[0]:
         if board[snake_pos[0] + 1][snake_pos[1]] == 1:
             find_tail = True
-        if board[snake_pos[0] + 1][snake_pos[1]] == 0:
+        elif board[snake_pos[0] + 1][snake_pos[1]] == 0:
             new_snake_pos = snake_pos + np.array([1, 0])
-            board[new_snake_pos[0]][new_snake_pos[1]] = 2
-            count += 1
-            find_tail, count = flood_fill(board, new_snake_pos , find_tail, count, size)
+            find_tail, count = flood_fill_helper(board, new_snake_pos , find_tail, count, size)
     if snake_pos[1] + 1 != size[1]:
         if board[snake_pos[0]][snake_pos[1] + 1] == 1:
             find_tail = True
-        if board[snake_pos[0]][snake_pos[1] + 1] == 0:
+        elif board[snake_pos[0]][snake_pos[1] + 1] == 0:
             new_snake_pos = snake_pos + np.array([0, 1])
-            board[new_snake_pos[0]][new_snake_pos[1]] = 2
-            count += 1
-            find_tail, count = flood_fill(board, new_snake_pos , find_tail, count, size)
+            find_tail, count = flood_fill_helper(board, new_snake_pos , find_tail, count, size)
     if snake_pos[0] != 0:
         if board[snake_pos[0] - 1][snake_pos[1]] == 1:
             find_tail = True
-        if board[snake_pos[0] - 1][snake_pos[1]] == 0:
+        elif board[snake_pos[0] - 1][snake_pos[1]] == 0:
             new_snake_pos = snake_pos + np.array([-1, 0])
-            board[new_snake_pos[0]][new_snake_pos[1]] = 2
-            count += 1
-            find_tail, count = flood_fill(board, new_snake_pos , find_tail, count, size)
+            find_tail, count = flood_fill_helper(board, new_snake_pos , find_tail, count, size)
     if snake_pos[1] != 0:
         if board[snake_pos[0]][snake_pos[1] - 1] == 1:
             find_tail = True
-        if board[snake_pos[0]][snake_pos[1] - 1] == 0:
+        elif board[snake_pos[0]][snake_pos[1] - 1] == 0:
             new_snake_pos = snake_pos + np.array([0, -1])
-            board[new_snake_pos[0]][new_snake_pos[1]] = 2
-            count += 1
-            find_tail, count = flood_fill(board, new_snake_pos , find_tail, count, size)
+            find_tail, count = flood_fill_helper(board, new_snake_pos , find_tail, count, size)
     return find_tail, count
 
-@njit
+@njit()
 def two_point_flood_fill(board, start_pos1, start_pos2, size):
     board = np.copy(board)
     pos1_array = np.zeros((size[0] * size[1], 2), 'i4')
