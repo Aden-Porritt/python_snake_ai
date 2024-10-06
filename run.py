@@ -1,7 +1,10 @@
 import numpy as np
 import snake
-import snake.board as snake_board
-import snake.snake_eng as eng
+import requests
+import json
+import asyncio
+import websockets
+import tracemalloc
 
 def get_win_size(size):
     max_size = np.array([1600, 800])
@@ -17,8 +20,37 @@ def display_score(score):
     text = font_.render(str_score, True, (255, 255, 255))
     WIN.blit(text, (WIDTH // 2, 20))
 
+        
+async def online_game_loop():
+    # uri = "ws://bink.eu.org:1234/ws"
+    uri = "ws://127.0.0.1:1234/ws"
+
+    async with websockets.connect(uri) as websocket:
+        move_count = 0
+        while True:
+            print('t')
+            new_board = await websocket.recv()
+            new_board, size = snake.snake_ai.get_board(new_board)
+            board = snake.board.Board(size, 2, WIN, SQRT_SIZE)
+            board.board = new_board
+            board.set_board()
+            if np.sum(new_board[0]) == 0:
+                move_count = 0
+            move = snake.snake_ai.get_move_in_time(board, 0.01, 1, 3)
+            move = move[0]
+            print(move)
+            move = snake.snake_ai.get_str_move(move)
+            print(move)
+            json_move = json.dumps({'direction': move})
+            if True:
+                for event in pygame.event.get():
+                    pass
+                board.draw_board()
+                pygame.display.update()
+            await websocket.send(json_move)
+
 def main():
-    win_draw_loss = np.zeros(3, 'i4')
+    win_draw_loss = np.zeros(3, 'i8')
     number_of_players = 2
     clock = pygame.time.Clock()
     moves = np.array([[4 for _ in range(10)] for i in range(number_of_players)])
@@ -28,12 +60,12 @@ def main():
         moves = np.array([[4 for _ in range(10)] for i in range(number_of_players)])
         moves_end_pointer = np.array([0 for i in range(number_of_players)])
         move_number = 0
-        board = snake_board.Board(SIZE, number_of_players, WIN, SQRT_SIZE)
+        board = snake.board.Board(SIZE, number_of_players, WIN, SQRT_SIZE)
         board.draw_board()
         pygame.display.flip()
         while np.sum(board.snakes_alive) > 1:
             next_move = False
-            clock.tick(7.5)
+            clock.tick(200)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     run = False
@@ -57,8 +89,8 @@ def main():
                             moves_end_pointer[0] += 1
                         if event.key == pygame.K_n:
                             next_move = True
-            ai_move_one = eng.get_move_in_time(board, 0.01, 0, 3)
-            ai_move_two = eng.get_move_in_time(board, 0.01, 1, 2)
+            ai_move_one = snake.snake_ai.get_move_in_time(board, 0.01, 0, 3)
+            ai_move_two = snake.snake_ai.get_move_in_time(board, 0.01, 0, 3)
             print(ai_move_one)
             # ai_move = np.random.randint(0, 4)
             # for move in moves:
@@ -66,7 +98,7 @@ def main():
             #         break
             if True: #moves[0][0] != 4:
                 if move_number % 1 == 0:
-                    board.move_snake(np.array([ai_move_one[0], ai_move_two[1]], 'i4'))
+                    board.move_snake(np.array([ai_move_one[0], ai_move_two[1]], 'i8'))
                     moves_end_pointer -= 1
                     moves_end_pointer = np.clip(moves_end_pointer, 0, 10)
                     for index, snake_moves in enumerate(moves):
@@ -88,7 +120,7 @@ def main():
         elif board.snakes_alive[1]:
             win_draw_loss[2] += 1
 
-SIZE = np.array([11, 12])
+SIZE = np.array([9, 10], 'i8')
 
 if __name__ == '__main__':
     import pygame
@@ -97,11 +129,6 @@ if __name__ == '__main__':
     import matplotlib.backends.backend_agg as agg
     import pylab
     pygame.init()
-    board = snake_board.Board(SIZE, 2, 1, 1)
-    ai_move = eng.get_move_in_time(board, 0.005, 0, 2)
-    board.move_snake(np.array([0]))
-    board = snake_board.Board(SIZE, 2, 1, 1)
-    ai_move = eng.get_move_in_time(board, 0.005, 0, 3)
     print('start')
     HEIGHT, WIDTH, SQRT_SIZE = get_win_size(SIZE)
     print(HEIGHT, WIDTH)
@@ -110,4 +137,6 @@ if __name__ == '__main__':
     pygame.display.set_caption("game")
     pylab.figure(figsize=[4, 4], dpi=100)
     main()
+    # tracemalloc.start()
+    # asyncio.run(online_game_loop())
     print('f')

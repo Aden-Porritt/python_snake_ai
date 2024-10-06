@@ -8,7 +8,7 @@ class Board():
         self.board, self.snakes_pos, self.snakes_lenght, self.wall_spawn, self.snakes_alive = eng.make_board(size, number_of_players)
         self.size = size
         self.move_count = 0
-        self.snakes_head_colour = np.array([[29, 20, 217], [211, 224, 18]])
+        self.snakes_head_colour = np.array([[118, 9, 219], [33, 94, 38]])
         self.snakes_tail_colour = np.array([[224, 28, 18], [18, 224, 193]])
         self.WIN = WIN
         self.SQRT_SIZE = SQRT_SIZE
@@ -18,12 +18,14 @@ class Board():
         return self.snakes_alive
     
     def set_board(self):
-        for row in range(self.size[0]):
-            for col in range(self.size[1]):
-                if self.board[0][row][col] == self.snake_lenght:
-                    self.snake_pos = np.array([row, col])
-                if self.board[2][row][col] == 1:
-                    self.board, self.wall_spawn = eng.change_wall_spawn(self.board, np.array([row, col]), self.wall_spawn, self.size)
+        for player in range(self.number_of_players):
+            self.snakes_lenght[player] = np.max(self.board[1 + player])
+            for row in range(self.size[0]):
+                for col in range(self.size[1]):
+                    if self.board[1 + player][row][col] == self.snakes_lenght[player]:
+                        self.snakes_pos[player] = np.array([row, col], 'i8')
+                    if self.board[0][row][col] == 2:
+                        self.board, self.wall_spawn = eng.change_wall_spawn(self.board, np.array([row, col], 'i8'), self.wall_spawn, self.size)
     
     def draw_board(self):
         for row in range(self.size[0]):
